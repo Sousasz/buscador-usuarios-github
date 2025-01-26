@@ -1,33 +1,51 @@
-import { Search } from "lucide-react";
+import { Introduction } from "./components/introduction";
+import { SearchUsersArea } from "./components/search-users-area";
+import { SearchResult } from "./components/search-result";
+import { useState, ChangeEvent, FormEvent } from "react";
 
 export function App() {
+  const [search, setSearch] = useState("");
+  const [useInfo, setUseInfo] = useState({});
+  const [ isModalOpen, setIsModalOpen ] = useState(false)
+
+  function onSearchUser(e: ChangeEvent<HTMLInputElement>) {
+    setSearch(e.target.value);
+    setIsModalOpen(false)
+  }
+
+  function fetchUsers(e: FormEvent<HTMLFormElement>) {
+    e.preventDefault();
+
+    if (search.trim() === "") {
+      return;
+    }
+
+    setIsModalOpen(true)
+
+    fetch(`https://api.github.com/users/${search}`).then((response) => {
+      response.json().then((data) => {
+        setUseInfo(data);
+        console.clear()
+      });
+    }); 
+  }
+
   return (
     <div className="bg-neutral-dark min-h-screen flex items-center flex-col py-20">
-      <div className="w-[30rem] flex flex-col gap-7">
-        <div className="w-72 ">
-          <h1 className="text-white text-3xl font-semibold text-start ">
-            GitHub Users
-          </h1>
-          <span className="text-stone-50">Find GitHub users</span>
-        </div>
+      <div className="flex flex-col gap-7">
+        <Introduction />
+        
+        <SearchUsersArea
+          search={search}
+          onSearchUser={onSearchUser}
+          fetchUsers={fetchUsers}
+        />
 
-        <div className="bg-neutral-base border border-neutral-light w-[35rem] h-14 rounded-full flex justify-between items-center">
-          <div className="w-full flex gap-5 px-5 ">
-            <Search color={"#505A65"} size={30} />
-            <input
-              className="bg-transparent placeholder:text-neutral-light placeholder:italic outline-none text-white w-full"
-              type="text"
-              placeholder="Ex.: Sousasz"
-            />
-          </div>
-
-          <button
-            className="text-white text-lg font-semibold bg-green-light rounded-full h-full w-52 outline-none"
-            type="submit"
-          >
-            Search
-          </button>
-        </div>
+        {isModalOpen ? (
+          <SearchResult useInfo={useInfo} />
+        ) : (
+          null
+        )}
       </div>
     </div>
   );
